@@ -19,10 +19,10 @@ read -p "Enter new IP address: " IPADDR
 read -p "Enter new netmask (e.g., 255.255.255.0): " NETMASK
 
 # Prompt for gateway 
-read -p "Enter gateway (leave empty if none): " GATEWAY
+read -p "Enter gateway: " GATEWAY
 
 # Prompt for DNS
-read -p "Enter DNS server" DNS
+read -p "Enter DNS server:" DNS
 
 # Check the OS and modify the corresponding network configuration file
 if [[ "$OS" == "kali" || "$OS" == "debian" ]]; then
