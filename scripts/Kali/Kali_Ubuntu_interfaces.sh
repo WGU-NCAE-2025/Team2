@@ -18,8 +18,11 @@ read -p "Enter new IP address: " IPADDR
 # Prompt for new netmask
 read -p "Enter new netmask (e.g., 255.255.255.0): " NETMASK
 
-# Prompt for gateway (optional)
+# Prompt for gateway 
 read -p "Enter gateway (leave empty if none): " GATEWAY
+
+# Prompt for DNS
+read -p "Enter DNS server" DNS
 
 # Check the OS and modify the corresponding network configuration file
 if [[ "$OS" == "kali" || "$OS" == "debian" ]]; then
@@ -30,7 +33,6 @@ if [[ "$OS" == "kali" || "$OS" == "debian" ]]; then
 
     # Write the new configuration
     cat > "$CONFIG_FILE" <<EOL
-# This file is managed by a script
 auto lo
 iface lo inet loopback
 
@@ -39,6 +41,7 @@ iface $IFACE inet static
     address $IPADDR
     netmask $NETMASK
     gateway $GATEWAY
+    dns-nameservers $DNS
 EOL
 
     # Restart networking service
@@ -62,6 +65,9 @@ network:
       addresses:
         - $IPADDR/24
       gateway4: $GATEWAY
+      nameservers:
+        addresses:
+          - $DNS 
 EOL
 
     # Apply Netplan changes
