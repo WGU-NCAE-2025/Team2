@@ -22,7 +22,7 @@ read -p "Enter new netmask (e.g., 255.255.255.0): " NETMASK
 read -p "Enter gateway: " GATEWAY
 
 # Prompt for DNS
-read -p "Enter DNS server:" DNS
+read -p "Enter DNS server (Blank if not needed):" DNS
 
 # Check the OS and modify the corresponding network configuration file
 if [[ "$OS" == "kali" || "$OS" == "debian" ]]; then
@@ -30,6 +30,9 @@ if [[ "$OS" == "kali" || "$OS" == "debian" ]]; then
 
     # Backup existing config
     cp "$CONFIG_FILE" "$CONFIG_FILE.bak"
+
+#Flush IPs
+ip addr flush dev $IFACE
 
     # Write the new configuration
     cat > "$CONFIG_FILE" <<EOL
@@ -41,8 +44,12 @@ iface $IFACE inet static
     address $IPADDR
     netmask $NETMASK
     gateway $GATEWAY
-    dns-nameservers $DNS
 EOL
+
+#If DNS specified
+if [ -n "$DNS" ]; then
+    echo "    dns-nameservers $DNS" >> /etc/network/interfaces
+fi
 
     # Restart networking service
     systemctl restart networking.service
@@ -55,6 +62,9 @@ elif [[ "$OS" == "ubuntu" ]]; then
     # Backup existing config
     cp "$CONFIG_FILE" "$CONFIG_FILE.bak"
 
+#Flush IPs
+ip addr flush dev $IFACE
+
     # Write the new Netplan configuration
     cat > "$CONFIG_FILE" <<EOL
 network:
@@ -65,10 +75,16 @@ network:
       addresses:
         - $IPADDR/24
       gateway4: $GATEWAY
+EOL
+
+#If DNS specified
+if [ -n "$DNS" ]; then
+    cat <<EOF >> /etc/netplan/01-network-manager-all.yaml
       nameservers:
         addresses:
-          - $DNS 
-EOL
+          - $DNS
+EOF
+fi
 
     # Apply Netplan changes
     netplan apply
