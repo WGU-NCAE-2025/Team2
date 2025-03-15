@@ -19,7 +19,7 @@ read -p "Enter new IP address: " IPADDR
 read -p "Enter new netmask (e.g., 255.255.255.0): " NETMASK
 
 # Prompt for gateway 
-read -p "Enter gateway: " GATEWAY
+read -p "Enter gateway (Blank if not needed): " GATEWAY
 
 # Prompt for DNS
 read -p "Enter DNS server (Blank if not needed):" DNS
@@ -43,8 +43,11 @@ auto $IFACE
 iface $IFACE inet static
     address $IPADDR
     netmask $NETMASK
-    gateway $GATEWAY
 EOL
+
+if [ -n "$GATEWAY" ]; then
+    echo "    gateway $GATEWAY" >> /etc/network/interfaces
+fi
 
 #If DNS specified
 if [ -n "$DNS" ]; then
@@ -74,8 +77,13 @@ network:
     $IFACE:
       addresses:
         - $IPADDR/24
-      gateway4: $GATEWAY
 EOL
+
+if [ -n "$GATEWAY" ]; then
+    cat <<EOF >> /etc/netplan/01-network-manager-all.yaml
+      gateway4: $GATEWAY
+EOF
+fi
 
 #If DNS specified
 if [ -n "$DNS" ]; then
